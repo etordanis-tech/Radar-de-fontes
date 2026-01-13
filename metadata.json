@@ -1,0 +1,5 @@
+{
+  "name": "Radar de Fontes",
+  "description": "Um aplicativo para encontrar fontes oficiais e alternativas de conteúdo sobre qualquer assunto usando o poder do Google Search via Gemini API.",
+  "requestFramePermissions": []
+}
