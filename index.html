@@ -4,171 +4,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radar de Fontes - Inteligência em Busca</title>
+    <title>Radar de Fontes | Buscador Inteligente</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .glass-card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .gradient-text {
-            background: linear-gradient(to right, #60a5fa, #818cf8, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; }
+        .glass { background: rgba(15, 15, 15, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .search-shadow:focus-within { box-shadow: 0 0 40px -10px rgba(59, 130, 246, 0.3); }
+        .gradient-text { background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-results { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .suggestion-btn { @apply px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-gray-400 hover:text-white hover:bg-white/10 hover:border-blue-500/50 transition-all; }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "@google/genai": "https://esm.sh/@google/genai@^1.35.0"
-  }
-}
-</script>
+    <script type="importmap">
+    {
+      "imports": {
+        "@google/genai": "https://esm.sh/@google/genai@^1.35.0"
+      }
+    }
+    </script>
 </head>
-<body class="bg-black text-gray-100 selection:bg-blue-500/30 min-h-screen relative overflow-x-hidden">
+<body class="text-gray-200 min-h-screen selection:bg-blue-500/30">
 
-    <!-- Elementos Decorativos de Fundo -->
-    <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full"></div>
+    <!-- Fundo dinâmico -->
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+        <div class="absolute top-[-10%] left-[-5%] w-[50%] h-[50%] bg-blue-600/10 blur-[120px] rounded-full"></div>
+        <div class="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full"></div>
     </div>
 
-    <div class="max-w-6xl mx-auto px-6 py-12">
-        <!-- Navegação -->
-        <nav class="flex justify-between items-center mb-16">
-            <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
-                <div class="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-600/20">
-                    <i data-lucide="globe" class="text-white w-5 h-5"></i>
+    <div class="max-w-6xl mx-auto px-6 py-8">
+        <!-- Header / Logo -->
+        <nav class="flex justify-between items-center mb-20">
+            <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onclick="location.reload()">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i data-lucide="radar" class="text-white w-6 h-6"></i>
                 </div>
-                <span class="text-xl font-black tracking-tighter">RADAR<span class="text-blue-500">FONTES</span></span>
+                <span class="text-2xl font-black tracking-tighter">RADAR<span class="text-blue-500">FONTES</span></span>
             </div>
-            <div class="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-400">
-                <a href="#" class="hover:text-white transition-colors">Segurança</a>
-                <a href="#" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full transition-all border border-white/10">Site Oficial</a>
+            <div class="flex items-center gap-4">
+                <span class="hidden md:block text-xs font-bold text-gray-500 tracking-widest uppercase">Motor de Busca IA</span>
+                <div class="h-4 w-px bg-white/10 hidden md:block"></div>
+                <button class="p-2 hover:bg-white/5 rounded-full transition-colors"><i data-lucide="settings" class="w-5 h-5 text-gray-400"></i></button>
             </div>
         </nav>
 
-        <!-- Seção Inicial (Hero) -->
-        <header id="hero-section" class="text-center mb-12">
-            <h1 class="text-5xl md:text-7xl font-black mb-6 tracking-tight leading-[1.1]">
-                Encontre qualquer <br />
-                <span class="gradient-text">conteúdo na web.</span>
-            </h1>
-            <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-                Mapeamos links oficiais e alternativas da comunidade em tempo real usando Inteligência Artificial.
-            </p>
-        </header>
+        <!-- Hero e Busca -->
+        <div id="main-interface" class="max-w-3xl mx-auto transition-all duration-700">
+            <div id="hero-text" class="text-center mb-12">
+                <h1 class="text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight">
+                    Encontre sua <span class="gradient-text">fonte.</span>
+                </h1>
+                <p class="text-gray-400 text-lg md:text-xl">O buscador que separa o oficial do alternativo para você.</p>
+            </div>
 
-        <!-- Barra de Busca -->
-        <div id="search-container" class="max-w-2xl mx-auto mb-16 transition-all duration-500">
-            <form id="search-form" class="relative group">
-                <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-25 group-focus-within:opacity-50 transition duration-1000"></div>
-                <input
-                    id="search-input"
-                    type="text"
-                    placeholder="O que você quer encontrar hoje?"
-                    class="relative w-full bg-gray-900 border border-white/10 focus:border-blue-500 rounded-2xl py-6 px-8 pr-20 text-xl outline-none transition-all shadow-2xl placeholder:text-gray-600"
-                    required
-                />
-                <button
-                    type="submit"
-                    id="search-button"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 p-4 bg-blue-600 hover:bg-blue-500 rounded-xl transition-all shadow-lg active:scale-95 z-20"
-                >
-                    <i data-lucide="search" id="search-icon" class="text-white w-6 h-6"></i>
-                    <i data-lucide="loader-2" id="loading-icon" class="text-white w-6 h-6 hidden animate-spin"></i>
-                </button>
+            <form id="search-form" class="relative group search-shadow rounded-2xl transition-all">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-20 group-focus-within:opacity-40 transition duration-1000"></div>
+                <div class="relative flex items-center bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden">
+                    <div class="pl-6 text-gray-500"><i data-lucide="search" class="w-6 h-6"></i></div>
+                    <input 
+                        id="search-input"
+                        type="text" 
+                        placeholder="Ex: Filme Matrix, Livro de IA, Software de Edição..."
+                        class="w-full bg-transparent py-6 px-4 text-xl outline-none placeholder:text-gray-600 text-white"
+                        autocomplete="off"
+                    >
+                    <button 
+                        type="submit"
+                        id="btn-submit"
+                        class="mr-3 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                    >
+                        <span id="btn-text">Buscar</span>
+                        <i data-lucide="arrow-right" id="btn-icon" class="w-5 h-5"></i>
+                        <i data-lucide="loader-2" id="btn-loader" class="w-5 h-5 animate-spin hidden"></i>
+                    </button>
+                </div>
             </form>
 
-            <!-- Sugestões -->
-            <div id="suggestions" class="flex flex-wrap justify-center gap-3 mt-8">
-                <button onclick="fillSearch('Assistir filmes online')" class="suggestion-chip">Assistir filmes</button>
-                <button onclick="fillSearch('Cursos de programação grátis')" class="suggestion-chip">Cursos grátis</button>
-                <button onclick="fillSearch('Baixar livros em PDF')" class="suggestion-chip">Baixar livros</button>
+            <div id="search-suggestions" class="flex flex-wrap justify-center gap-3 mt-8">
+                <button class="suggestion-btn" onclick="quickSearch('Onde assistir filmes grátis 2024')">Assistir Filmes</button>
+                <button class="suggestion-btn" onclick="quickSearch('Baixar livros em PDF grátis')">Livros PDF</button>
+                <button class="suggestion-btn" onclick="quickSearch('Cursos de programação gratuitos')">Cursos Grátis</button>
+                <button class="suggestion-btn" onclick="quickSearch('Melhores sites para baixar jogos pc')">Jogos PC</button>
             </div>
         </div>
 
-        <!-- Área de Resultados (Escondida por padrão) -->
-        <main id="results-area" class="hidden space-y-16 animate-fade-in">
-            <!-- Resumo da IA -->
-            <section class="glass-card rounded-[2rem] p-8 md:p-10 relative overflow-hidden">
-                <h2 class="text-xl font-bold mb-6 flex items-center gap-3 text-blue-400">
-                    <i data-lucide="info" class="w-5 h-5"></i> Visão Geral do Radar
-                </h2>
-                <p id="ai-summary" class="text-gray-300 text-lg leading-relaxed italic border-l-4 border-blue-500/30 pl-6">
-                    <!-- Preenchido via JS -->
-                </p>
+        <!-- Área de Resultados -->
+        <main id="results-container" class="hidden mt-20 space-y-16 animate-results">
+            <!-- Resumo Inteligente -->
+            <section class="glass rounded-3xl p-8 md:p-10">
+                <div class="flex items-center gap-3 text-blue-400 mb-6">
+                    <i data-lucide="sparkles" class="w-6 h-6"></i>
+                    <h2 class="text-xl font-bold uppercase tracking-wider">Análise do Radar</h2>
+                </div>
+                <p id="summary-text" class="text-gray-300 text-lg md:text-xl leading-relaxed italic"></p>
             </section>
 
-            <!-- Grids de Links -->
-            <div class="grid lg:grid-cols-2 gap-12">
-                <!-- Coluna Oficial -->
-                <div class="space-y-8">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20 text-emerald-500">
-                            <i data-lucide="shield-check"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-2xl font-black text-white">Fontes Oficiais</h3>
-                            <p class="text-xs text-gray-500 font-medium">Canais autorizados e plataformas seguras</p>
-                        </div>
+            <!-- Grid de Links -->
+            <div class="grid lg:grid-cols-2 gap-10">
+                <!-- Oficiais -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3 border-b border-white/5 pb-4">
+                        <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><i data-lucide="check-circle" class="w-6 h-6"></i></div>
+                        <h3 class="text-2xl font-bold">Fontes Oficiais</h3>
                     </div>
-                    <div id="legal-links" class="grid gap-5">
-                        <!-- Links oficiais aqui -->
-                    </div>
+                    <div id="legal-list" class="grid gap-4"></div>
                 </div>
 
-                <!-- Coluna Alternativa -->
-                <div class="space-y-8">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center border border-amber-500/20 text-amber-500">
-                            <i data-lucide="shield-alert"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-2xl font-black text-white">Alternativas</h3>
-                            <p class="text-xs text-gray-500 font-medium">Comunidades, fóruns e sites de terceiros</p>
-                        </div>
+                <!-- Alternativas -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3 border-b border-white/5 pb-4">
+                        <div class="p-2 bg-amber-500/10 rounded-lg text-amber-500"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
+                        <h3 class="text-2xl font-bold">Fontes Alternativas</h3>
                     </div>
-                    <div id="alternative-links" class="grid gap-5">
-                        <!-- Links alternativos aqui -->
-                    </div>
+                    <div id="alternative-list" class="grid gap-4"></div>
                 </div>
+            </div>
+
+            <!-- Rodapé de Referências -->
+            <div id="grounding-info" class="pt-10 border-t border-white/5 text-center">
+                <p class="text-xs font-bold text-gray-600 uppercase tracking-[0.3em] mb-4">Dados fornecidos por Google Search</p>
+                <div id="source-chips" class="flex flex-wrap justify-center gap-2"></div>
             </div>
         </main>
 
-        <!-- Footer -->
-        <footer class="mt-32 pt-16 border-t border-white/5 text-center">
-            <p class="text-sm text-gray-500 mb-2">© 2024 Radar Fontes. Desenvolvido com Gemini AI.</p>
-            <p class="text-[10px] text-gray-600 uppercase tracking-widest max-w-xl mx-auto leading-relaxed">
-                IMPORTANTE: Não hospedamos arquivos. Os links são coletados da web pública. Use por sua conta e risco.
+        <!-- Footer Geral -->
+        <footer class="mt-32 pb-10 text-center border-t border-white/5 pt-16">
+            <div class="flex justify-center gap-8 mb-8 opacity-40">
+                <div class="flex items-center gap-2 text-xs font-bold tracking-widest"><i data-lucide="shield" class="w-4 h-4"></i> PRIVACIDADE</div>
+                <div class="flex items-center gap-2 text-xs font-bold tracking-widest"><i data-lucide="zap" class="w-4 h-4"></i> IA ATIVA</div>
+                <div class="flex items-center gap-2 text-xs font-bold tracking-widest"><i data-lucide="globe" class="w-4 h-4"></i> WEB REALTIME</div>
+            </div>
+            <p class="text-sm text-gray-500 mb-4">O Radar Fontes não hospeda conteúdos e não se responsabiliza por links externos.</p>
+            <p class="text-[10px] text-gray-600 max-w-2xl mx-auto uppercase leading-loose tracking-widest">
+                Aviso: O uso de sites de terceiros pode envolver riscos. Proteja seus dados e respeite as leis de direitos autorais do seu país.
             </p>
         </footer>
     </div>
 
-    <script type="module" src="index.js"></script>
+    <!-- Notificações de Erro -->
+    <div id="error-toast" class="fixed bottom-8 right-8 translate-y-20 opacity-0 transition-all duration-500 z-50">
+        <div class="bg-red-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
+            <i data-lucide="x-circle"></i>
+            <span id="error-message">Erro na busca</span>
+        </div>
+    </div>
 
+    <script type="module" src="index.js"></script>
     <script>
-        // Função utilitária para as sugestões
-        function fillSearch(val) {
-            document.getElementById('search-input').value = val;
+        function quickSearch(val) {
+            const input = document.getElementById('search-input');
+            input.value = val;
             document.getElementById('search-form').dispatchEvent(new Event('submit'));
         }
     </script>
-
-    <style>
-        .suggestion-chip {
-            @apply px-4 py-2 bg-gray-900/50 border border-white/5 rounded-full text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 hover:border-blue-500/50 transition-all;
-        }
-    </style>
 </body>
 </html>
